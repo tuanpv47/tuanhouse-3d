@@ -958,7 +958,7 @@ function clearLayout(){
 /* 侧栏开合：which = 'lib' | 'panel' | null，open 不传则切换。
  * 宽屏：侧栏在布局中收起 / 展开（记住选择）；窄屏：侧栏是浮层抽屉，一次只开一个，which = null 表示全部关闭 */
 const PANES = 'huxing-panes';
-const panes = (() => { try { return JSON.parse(localStorage.getItem(PANES)) || {}; } catch(e) { return {}; } })();
+const panes = (() => { try { return JSON.parse(localStorage.getItem(PANES)) || {"hidePanel": true,"hideLib":true}; } catch(e) { return {}; } })();
 function drawer(which, open){
   const app = $('.app'), els = {lib:$('aside.lib'), panel:$('aside.right')}, n = narrow();
   if (n){
