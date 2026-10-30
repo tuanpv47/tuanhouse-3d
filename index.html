@@ -2376,7 +2376,7 @@ function buildArch(){
     const leaf = box(L, dh, .04, mat(d.entry ? '#6b4f3a' : '#efe6d8', {roughness:.5}), L/2);
     const knob = new THREE.Mesh(new THREE.SphereGeometry(.03, 12, 8), metal()); knob.position.set(L - .07, Math.min(1, dh - .05), 0); knob.scale.z = 2.2;
     pivot.add(leaf, knob);
-    const ang = v => Math.atan2(-v[1], v[0]), door = {pivot, a0:ang(d.c), a1:ang(d.o), open:true};
+    const ang = v => Math.atan2(-v[1], v[0]), door = {pivot, a0:ang(d.c), a1:ang(d.o), open:true, at:[wx((d.rect[0]+d.rect[2])/2), wz((d.rect[1]+d.rect[3])/2)]};
     if (door.a1 - door.a0 > Math.PI) door.a1 -= Math.PI*2; if (door.a0 - door.a1 > Math.PI) door.a1 += Math.PI*2;
     door.cur = door.a1; pivot.rotation.y = door.cur; leaf.userData.door = knob.userData.door = door;
     doors.push(door); archUp.add(pivot);
@@ -2384,7 +2384,7 @@ function buildArch(){
   SLIDES.forEach(({rect:[x0, y0, x1, y1], v}) => {
     const L = M(v ? y1-y0 : x1-x0), ph = Math.min(v ? 2.4 : 2.1, top), pl = L*.55;
     // 一扇固定、一扇可推拉：打开时活动扇滑到固定扇后面，留出 L - pl 宽的通道（默认打开）
-    const ax = v ? 'z' : 'x', sl = {open:true, cur:1, ax, pl, v, shift:-(L - pl)};
+    const ax = v ? 'z' : 'x', sl = {open:true, cur:1, ax, pl, v, shift:-(L - pl), at:[wx((x0+x1)/2), wz((y0+y1)/2)]};
     [[-1, -.02], [1, .02]].forEach(([s, off]) => {
       const c = s < 0 ? -L/2 + pl/2 : L/2 - pl/2, x = v ? wx((x0+x1)/2) + off : wx(x0) + L/2 + c, z = v ? wz(y0) + L/2 + c : wz((y0+y1)/2) + off;
       const g = new THREE.Group(); g.position.set(x, 0, z);
@@ -2545,8 +2545,8 @@ function pick(e){
   const hits = ray.intersectObjects([...(opt.furn ? [furnG] : []), archUp, archFloor], true);
   for (const h of hits){
     let o = h.object;
-    if (o.material === glassMat) continue;
     if (o.userData.door) return {door:o.userData.door, dist:h.distance};
+    if (o.material === glassMat) continue;
     if (o.userData.room) return {room:o.userData.room};
     while (o && !o.userData.fid && o !== scene) o = o.parent;
     if (o?.userData.fid) return {fid:o.userData.fid};
@@ -2668,7 +2668,14 @@ function stepWalk(dt){
 addEventListener('keydown', e => {
   if (!active || e.target.matches('input,select,textarea')) return;
   keys[e.code] = true;
-  if (opt.mode === 'walk' && e.code === 'KeyE'){ const h = pick(); if (h?.door && h.dist < 2.5) h.door.open = !h.door.open; }
+  if (opt.mode === 'walk' && e.code === 'KeyE' && !e.repeat){
+    const h = pick(); let d = h?.door && h.dist < 2.5 ? h.door : null;
+    if (!d){
+      const p = camera.position, dist = o => Math.hypot(o.at[0] - p.x, o.at[1] - p.z);
+      d = [...doors, ...slides].filter(o => dist(o) < 1.6).sort((a, b) => dist(a) - dist(b))[0];
+    }
+    if (d) d.open = !d.open;
+  }
 });
 addEventListener('keyup', e => keys[e.code] = false);
 
