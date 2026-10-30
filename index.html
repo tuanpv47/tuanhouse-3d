@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#fffdf9">
-<title>Tuan House 3d</title>
+<title>Tuan House 3D</title>
 <style>
 :root{
   --bg:#f3efe7; --paper:#f7f4ee; --panel:#fffdf9; --line:#e3dccf; --ink:#2b2824; --muted:#8a8174;
@@ -213,6 +213,34 @@ main.drawer-panel #fab{opacity:0;visibility:hidden}
   .lib-grid{grid-template-columns:1fr 1fr 1fr}
   .brand span,footer .only2d{display:none!important}
 }
+.hscroll{display:contents}
+/* ---------- 手机：顶栏收成两行，第二行横向滑动 ---------- */
+@media (max-width:640px){
+  header{padding:6px 8px;gap:6px}
+  .brand{display:none}
+  #paneBtns{margin-left:auto}
+  .hscroll{order:1;display:flex;flex-wrap:nowrap;align-items:center;gap:6px;width:100%;overflow-x:auto;overscroll-behavior-x:contain;
+    scrollbar-width:none;padding-right:8px}
+  .hscroll::-webkit-scrollbar{display:none}
+  .hscroll>*{flex:none}
+  .hscroll .spacer{display:none}
+  .btn{padding:6px 10px;min-height:36px}
+  .seg .btn,.seg .pill{width:80px}
+  body.m3d .seg .pill{transform:translateX(82px)}
+  #paneBtns .btn,.seg .btn{padding:6px 8px}
+  .menu summary{padding:7px 12px}
+  .menu-pop{position:fixed;right:8px;top:auto}
+  .range input{width:96px!important}
+  .lib-grid{grid-template-columns:1fr 1fr 1fr}
+  .item svg{width:48px;height:38px}
+  #hint3d,.modehint{white-space:normal;text-align:center;width:max-content;max-width:calc(100% - 24px);line-height:1.35}
+  #fab{bottom:10px;overflow-x:auto;scrollbar-width:none}
+  #fab .name{max-width:6em}
+  footer{padding:0 10px;font-size:11px}
+  #walkOverlay>div{margin:0 16px;padding:18px 20px}
+  #joy{left:18px;bottom:18px;width:116px;height:116px}
+  #walkExit{right:12px;bottom:18px}
+}
 </style>
 <script type="importmap">
 {"imports":{
@@ -234,6 +262,7 @@ main.drawer-panel #fab{opacity:0;visibility:hidden}
       <button class="btn" data-view="2d" data-en="2D Plan">2D 平面</button>
       <button class="btn" data-view="3d" data-en="3D Scene">3D 场景</button>
     </div>
+    <div class="hscroll">
     <div class="grp only2d" id="tools">
       <button class="btn on" data-tool="select" title="选择 / 移动 (V)" data-en-title="Select / Move (V)" data-en="Select">选择</button>
       <button class="btn" data-tool="measure" title="测量 (M)" data-en-title="Measure (M)" data-en="Measure">测量</button>
@@ -291,6 +320,7 @@ main.drawer-panel #fab{opacity:0;visibility:hidden}
         <button class="btn" id="importJson" data-en="Import plan">导入方案</button>
         <button class="btn danger" id="reset" data-en="Reset to default">重置为默认方案</button>
       </div></details>
+    </div>
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
   </header>
 
@@ -508,14 +538,18 @@ function defaultFurniture(){ return [
   // 客卫
   F('vanity','浴室柜',250,8250,800,500,270), F('shower','淋浴房',450,9350,900,900), F('toilet','马桶',1350,9450,400,700,180),
   // 主卧
-  F('bed','双人床',5500,1600,1600,2000,90,'#c9d6df'), F('nightstand','床头柜',6300,550,450,400,90), F('nightstand','床头柜',6300,2650,450,400,90),
+  F('bed','双人床',5500,1600,1600,2000,90,'#c9d6df'), 
+  F('nightstand','床头柜',6300,550,450,400,90), 
+  // F('nightstand','床头柜',6300,2650,450,400,90),
   F('wardrobe','衣柜',5550,3500,1800,600,180), F('desk','书桌',4200,300,1200,600), F('chair','椅子',4200,820,450,480,180),
   // 主卫浴
   F('vanity','浴室柜',3950,5250,800,500,180), F('toilet','马桶',4800,5150,400,700,180), F('shower','淋浴区',5950,4700,1000,1600),
   // 洗衣间
   F('washer','洗衣机',4700,5900,600,600),
   // 次卧
-  F('bed','双人床',5500,8200,1500,2000,90,'#d8c7dc'), F('nightstand','床头柜',6300,7100,450,400,90), F('nightstand','床头柜',6300,9300,450,400,90),
+  F('bed','双人床',5500,8200,1500,2000,90,'#d8c7dc'), 
+  // F('nightstand','床头柜',6300,7100,450,400,90), 
+  F('nightstand','床头柜',6300,9300,450,400,90),
   F('wardrobe','衣柜',3700,8850,1800,600,270),
 ];}
 
@@ -1457,6 +1491,10 @@ $('#tgLib').onclick = () => drawer('lib');
 $('#tgPanel').onclick = () => drawer('panel');
 // 触屏上点菜单以外的地方收起「文件」菜单
 document.addEventListener('pointerdown', e => { const m = $('details.menu'); if (m.open && !m.contains(e.target)) m.open = false; });
+$('details.menu').addEventListener('toggle', e => {
+  const m = e.currentTarget, pop = m.querySelector('.menu-pop');
+  pop.style.top = m.open && matchMedia('(max-width:640px)').matches ? m.querySelector('summary').getBoundingClientRect().bottom + 6 + 'px' : '';
+});
 matchMedia('(max-width:1100px)').addEventListener('change', () => drawer(null));
 drawer(null);                                  // 恢复上次的面板收起状态
 $('#exportPng').onclick = exportPNG;
@@ -1519,7 +1557,7 @@ let inited = false, active = false, raf = 0, anim = null, fly = null;
 let renderer, labelRenderer, scene, camera, orbit, walkCtl, hemi, sun, ground, glassMat, wallMat, capMat, frameMat;
 let archFloor, archUp, furnG, labelG, lampG, colliders = [], selKey = null, selHelper = null;
 let sigArch = '', sigFurn = '', sigLabels = '', grow = 1, furnGrow = 1;
-const doors = [], keys = {};
+const doors = [], slides = [], keys = {};
 
 /* ======================= 初始化 ======================= */
 function init(){
@@ -2293,7 +2331,7 @@ const edgeMat = new THREE.LineBasicMaterial({color:0x6f675b}), skirtMat = new TH
 function shapeOf(poly, flip){ const s = new THREE.Shape(); poly.forEach(([x, y], i) => s[i ? 'lineTo' : 'moveTo'](wx(x), flip ? wz(y) : -wz(y))); return s; }
 
 function buildArch(){
-  clearGroup(archFloor); clearGroup(archUp); lampG.clear(); doors.length = 0; colliders = [];
+  clearGroup(archFloor); clearGroup(archUp); lampG.clear(); doors.length = 0; slides.length = 0; colliders = [];
   const top = opt.cut;
   ROOMS.forEach(r => {
     const m = floorMat(state.rooms[r.id].mat), bay = r.counted === false;
@@ -2345,12 +2383,19 @@ function buildArch(){
   });
   SLIDES.forEach(({rect:[x0, y0, x1, y1], v}) => {
     const L = M(v ? y1-y0 : x1-x0), ph = Math.min(v ? 2.4 : 2.1, top), pl = L*.55;
+    // 一扇固定、一扇可推拉：打开时活动扇滑到固定扇后面，留出 L - pl 宽的通道（默认打开）
+    const ax = v ? 'z' : 'x', sl = {open:true, cur:1, ax, pl, v, shift:-(L - pl)};
     [[-1, -.02], [1, .02]].forEach(([s, off]) => {
       const c = s < 0 ? -L/2 + pl/2 : L/2 - pl/2, x = v ? wx((x0+x1)/2) + off : wx(x0) + L/2 + c, z = v ? wz(y0) + L/2 + c : wz((y0+y1)/2) + off;
-      const p = new THREE.Mesh(new THREE.BoxGeometry(v ? .02 : pl, ph, v ? pl : .02), glassMat); p.position.set(x, ph/2, z); archUp.add(p);
-      [ph - .03, .03].forEach(y => { const fr = new THREE.Mesh(new THREE.BoxGeometry(v ? .04 : pl, .05, v ? pl : .04), frameMat); fr.position.set(x, y, z); archUp.add(fr); });
-      [-1, 1].forEach(e => { const fr = new THREE.Mesh(new THREE.BoxGeometry(.04, ph, .04), frameMat); fr.position.set(v ? x : x + e*pl/2, ph/2, v ? z + e*pl/2 : z); archUp.add(fr); });
+      const g = new THREE.Group(); g.position.set(x, 0, z);
+      const p = new THREE.Mesh(new THREE.BoxGeometry(v ? .02 : pl, ph, v ? pl : .02), glassMat); p.position.y = ph/2; g.add(p);
+      [ph - .03, .03].forEach(y => { const fr = new THREE.Mesh(new THREE.BoxGeometry(v ? .04 : pl, .05, v ? pl : .04), frameMat); fr.position.y = y; g.add(fr); });
+      [-1, 1].forEach(e => { const fr = new THREE.Mesh(new THREE.BoxGeometry(.04, ph, .04), frameMat); fr.position.set(v ? 0 : e*pl/2, ph/2, v ? e*pl/2 : 0); g.add(fr); });
+      g.traverse(o => o.userData.door = sl);
+      if (s < 0) sl.fixed = g.position[ax]; else { sl.g = g; sl.base = g.position[ax]; g.position[ax] = sl.base + sl.shift; }
+      archUp.add(g);
     });
+    slides.push(sl);
   });
   applyLight(); applyGrow();
 }
@@ -2423,10 +2468,12 @@ function planPose(){
   return pose(t, new THREE.Vector3(t.x, dist, t.z + 1e-4));
 }
 function isoFrom(P){
-  const d = THREE.MathUtils.clamp(P.p.y, 5, 30), dir = new THREE.Vector3(.3, .82, .49).normalize();
+  const d = THREE.MathUtils.clamp(P.p.y, 5, 30) * fitK(), dir = new THREE.Vector3(.3, .82, .49).normalize();
   return pose(P.t.clone(), P.t.clone().addScaledVector(dir, d));
 }
-const isoWhole = () => pose(new THREE.Vector3(0, 0, 0), new THREE.Vector3(5, 14, 9));
+// 竖屏（手机）可视宽度小，镜头按宽高比拉远，保证整套户型完整入画
+const fitK = () => Math.max(1, .72 / camera.aspect);
+const isoWhole = () => pose(new THREE.Vector3(0, 0, 0), new THREE.Vector3(5, 14, 9).multiplyScalar(fitK()));
 const topWhole = () => pose(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 19, 1e-4));
 const curPose = () => pose(orbit.target.clone(), camera.position.clone());
 // 以目标点为中心做球坐标插值：镜头沿弧线倾斜环绕，而不是直线穿越
@@ -2446,7 +2493,7 @@ function flyToRoom(id){
   const t = new THREE.Vector3(wx((Math.min(...xs)+Math.max(...xs))/2), .6, wz((Math.min(...ys)+Math.max(...ys))/2));
   const size = M(Math.max(Math.max(...xs)-Math.min(...xs), Math.max(...ys)-Math.min(...ys)));
   const dir = camera.position.clone().sub(orbit.target).setY(0); if (dir.lengthSq() < .01) dir.set(.6, 0, .8); dir.normalize();
-  const dist = size*1.3 + 2.2;
+  const dist = (size*1.3 + 2.2) * fitK();
   flyTo(pose(t, new THREE.Vector3(t.x + dir.x*dist*.7, dist*1.05, t.z + dir.z*dist*.7)));
 }
 
@@ -2596,6 +2643,11 @@ function blocked(x, z, r = .22){
     const t = clamp01(((x-px)*(ex-px) + (z-pz)*(ez-pz)) / ((ex-px)**2 + (ez-pz)**2));
     if (Math.hypot(x - (px + t*(ex-px)), z - (pz + t*(ez-pz))) < r*.8) return true;
   }
+  for (const sl of slides){   // 推拉门两扇玻璃按当前位置阻挡
+    const perp = sl.v ? x : z, along = sl.v ? z : x, line = sl.v ? sl.g.position.x : sl.g.position.z;
+    if (Math.abs(perp - line) > r*.8 + .03) continue;
+    if ([sl.fixed, sl.g.position[sl.ax]].some(a => Math.abs(along - a) < sl.pl/2 + r*.3)) return true;
+  }
   return false;
 }
 function stepWalk(dt){
@@ -2664,6 +2716,7 @@ function loop(){
   else if (opt.mode === 'orbit') orbit.update();
   else stepWalk(dt);
   doors.forEach(d => { const tg = d.open ? d.a1 : d.a0; d.cur += (tg - d.cur) * Math.min(1, dt*6); d.pivot.rotation.y = d.cur; });
+  slides.forEach(s => { s.cur += (+s.open - s.cur) * Math.min(1, dt*5); s.g.position[s.ax] = s.base + s.cur*s.shift; });
   updateSel();
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);
